@@ -8,20 +8,21 @@ import (
 	"io/ioutil"
 	pb "iskayPetMicro/api"
 	"net/http"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
+//define interface to interface layer
 type InterfaceInterface interface {
 	GetAll(w http.ResponseWriter, r *http.Request)
 	GetStatistics(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 }
 
+//define struct to interface layer
 type Interface struct {
 	usecase Usecase.UsecaseInterface
 }
 
+//constructor to petInterface that return a pointer Interface with next layer Interface (usecaseInterface)
 func PetsInterface(usecase Usecase.UsecaseInterface) InterfaceInterface {
 	return &Interface{
 		usecase: usecase,
@@ -33,13 +34,15 @@ func (ui *Interface) GetAll(w http.ResponseWriter, r *http.Request) {
 	var qfilter model.QueryFilters
 	var response []interface{}
 
-	authors, errAuthors := ui.usecase.GetAll(qfilter)
+	pets, errPets := ui.usecase.GetAll(qfilter)
 
-	if errAuthors != nil {
-		presenters.ReturnHttpError(errAuthors, w, http.StatusBadRequest)
+	if errPets != nil {
+		presenters.ReturnHttpError(errPets, w, http.StatusBadRequest)
 		return
 	}
-	err := presenters.ArrayStructToBson(authors, &response)
+
+	//parse struct to bson
+	err := presenters.ArrayStructToBson(pets, &response)
 	if err != nil {
 		presenters.ReturnHttpError(err, w, http.StatusBadRequest)
 		return
@@ -59,6 +62,7 @@ func (ui *Interface) GetStatistics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//parse struct to bson
 	response, err := presenters.StructToBson(objectToReturn)
 	if err != nil {
 		presenters.ReturnHttpError(err, w, http.StatusBadRequest)
@@ -70,8 +74,9 @@ func (ui *Interface) GetStatistics(w http.ResponseWriter, r *http.Request) {
 
 func (ui *Interface) Create(w http.ResponseWriter, r *http.Request) {
 
-	//GET body update request
 	var objectToCreate pb.Pet
+
+	//GET body update request
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -85,11 +90,18 @@ func (ui *Interface) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, errCreate := ui.usecase.Create(objectToCreate)
+	pet, errCreate := ui.usecase.Create(objectToCreate)
 	if errCreate != nil {
 		presenters.ReturnHttpError(errCreate, w, http.StatusInternalServerError)
 		return
 	}
 
-	presenters.ReturnHttpPayload(bson.M{"success": true}, w)
+	//parse struct to bson
+	response, err := presenters.StructToBson(pet)
+	if err != nil {
+		presenters.ReturnHttpError(err, w, http.StatusBadRequest)
+		return
+	}
+
+	presenters.ReturnHttpPayload(response, w)
 }

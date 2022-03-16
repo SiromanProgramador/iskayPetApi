@@ -14,14 +14,12 @@ import (
 	"net/http"
 	"time"
 
-	// gin-swagger middleware
-	// swagger embed files
-
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
+//initalized variables
 var startTime time.Time
 var db *mgo.Database
 
@@ -35,6 +33,7 @@ func main() {
 
 }
 
+//start MongoDB
 func MongoStart() *mgo.Database {
 	session, err :=
 		mgo.Dial("localhost:27017")
@@ -48,6 +47,7 @@ func MongoStart() *mgo.Database {
 
 }
 
+//charge router
 func loadRouter() *mux.Router {
 
 	router := mux.NewRouter()

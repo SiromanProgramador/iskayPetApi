@@ -6,16 +6,19 @@ import (
 	pb "iskayPetMicro/api"
 )
 
+//define interface to Usecase layer
 type UsecaseInterface interface {
 	Create(pet pb.Pet) (*pb.Pet, error)
 	GetStatistics(queryFilters model.QueryFilters) (*pb.ResponseStatistics, error)
 	GetAll(filter model.QueryFilters) ([]*pb.Pet, error)
 }
 
+//define struct to Usecase layer
 type Usecase struct {
 	repo repository.RepositoryInterface
 }
 
+//constructor to petInterface that return a pointer Usecase with next layer Interface (RepositoryInterface)
 func NewUsecase(repo repository.RepositoryInterface) UsecaseInterface {
 	return &Usecase{
 		repo: repo,
